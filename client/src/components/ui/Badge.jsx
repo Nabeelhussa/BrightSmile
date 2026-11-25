@@ -20,7 +20,7 @@ export function StatusBadge({ status }) {
 export function ActiveBadge({ isActive }) {
   return (
     <Badge variant={isActive ? 'success' : 'neutral'}>
-      {isActive ? 'Active' : 'Inactive'}
+      {isActive ? 'Active Roster' : 'Inactive'}
     </Badge>
   );
 }

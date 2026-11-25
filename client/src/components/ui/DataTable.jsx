@@ -3,6 +3,7 @@ export function DataTable({
   rows,
   keyExtractor = (row) => row.id,
   renderMobileCard,
+  onRowClick,
   ariaLabel = 'Data table',
 }) {
   return (
@@ -23,7 +24,18 @@ export function DataTable({
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={keyExtractor(row)}>
+              <tr
+                key={keyExtractor(row)}
+                className={onRowClick ? 'clickable-row' : undefined}
+                onClick={
+                  onRowClick
+                    ? (event) => {
+                        if (event.target.closest('button, a, select, input')) return;
+                        onRowClick(row);
+                      }
+                    : undefined
+                }
+              >
                 {columns.map((col) => (
                   <td
                     key={col.key}
