@@ -1,0 +1,38 @@
+databases:
+  - name: dental-clinic-db
+    plan: free
+    databaseName: dental_clinic
+    user: dental_clinic_user
+
+services:
+  - type: web
+    name: dental-clinic-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dental-clinic-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: '*'
+
+  - type: web
+    name: dental-clinic-web
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false

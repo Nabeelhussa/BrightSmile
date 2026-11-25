@@ -1,0 +1,22 @@
+{
+  "name": "dental-clinic-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RESTful Express API for the Dental Clinic Management System",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/db/runSeed.js",
+    "test": "node --test tests/api.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
