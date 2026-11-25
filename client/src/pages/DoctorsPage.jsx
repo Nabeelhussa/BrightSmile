@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  Calendar,
   Eye,
+  Filter,
   Mail,
   Pencil,
   Phone,
@@ -8,6 +10,7 @@ import {
   Search,
   Stethoscope,
   Trash2,
+  UserCheck,
 } from 'lucide-react';
 import { doctorsApi } from '../api/client.js';
 import { DoctorDetailModal } from '../components/doctors/DoctorDetailModal.jsx';
@@ -80,7 +83,7 @@ export function DoctorsPage() {
       showToast(`${payload.name} updated successfully.`);
     } else {
       await doctorsApi.create(payload);
-      showToast(`${payload.name} added to the clinic.`);
+      showToast(`${payload.name} added to clinic roster.`);
     }
     await loadDoctors();
   };
@@ -90,7 +93,7 @@ export function DoctorsPage() {
     setDeleting(true);
     try {
       await doctorsApi.remove(deleteTarget.id);
-      showToast(`${deleteTarget.name} was deleted.`);
+      showToast(`${deleteTarget.name} was removed.`);
       setDeleteTarget(null);
       await loadDoctors();
     } catch (err) {
@@ -103,9 +106,9 @@ export function DoctorsPage() {
   const columns = [
     {
       key: 'name',
-      header: 'Doctor',
+      header: 'Doctor Name & Specialty',
       render: (doc) => (
-        <div className="row-inline" style={{ gap: 12 }}>
+        <div className="row-inline" style={{ gap: 14 }}>
           <div className="avatar">{getInitials(doc.name)}</div>
           <div>
             <button
@@ -116,6 +119,7 @@ export function DoctorsPage() {
                 border: 'none',
                 padding: 0,
                 fontWeight: 700,
+                fontSize: '0.94rem',
                 color: 'var(--color-primary-700)',
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -123,17 +127,20 @@ export function DoctorsPage() {
             >
               {doc.name}
             </button>
-            <div className="text-muted">{doc.specialization}</div>
+            <div className="row-inline text-muted" style={{ gap: 4, fontWeight: 500, marginTop: 1 }}>
+              <Stethoscope size={13} style={{ color: 'var(--color-primary-600)' }} />
+              <span>{doc.specialization}</span>
+            </div>
           </div>
         </div>
       ),
     },
     {
       key: 'contact',
-      header: 'Contact',
+      header: 'Contact Info',
       render: (doc) => (
         <div className="stack-sm" style={{ gap: 3 }}>
-          <div className="row-inline" style={{ gap: 6, fontSize: '0.86rem' }}>
+          <div className="row-inline" style={{ gap: 6, fontSize: '0.86rem', fontWeight: 500 }}>
             <Phone size={13} color="#64748b" />
             <span>{doc.phone}</span>
           </div>
@@ -146,19 +153,22 @@ export function DoctorsPage() {
     },
     {
       key: 'availability',
-      header: 'Availability',
+      header: 'Schedule & Visits',
       render: (doc) => (
         <div>
-          <div style={{ fontSize: '0.88rem' }}>{doc.availability}</div>
-          <div className="text-muted">
-            {doc.appointment_count ?? 0} appointment{doc.appointment_count === 1 ? '' : 's'}
+          <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>{doc.availability}</div>
+          <div className="row-inline text-muted" style={{ gap: 4, marginTop: 2 }}>
+            <Calendar size={13} />
+            <span>
+              {doc.appointment_count ?? 0} appointment{doc.appointment_count === 1 ? '' : 's'}
+            </span>
           </div>
         </div>
       ),
     },
     {
       key: 'is_active',
-      header: 'Status',
+      header: 'Roster Status',
       render: (doc) => <ActiveBadge isActive={doc.is_active} />,
     },
     {
@@ -208,7 +218,7 @@ export function DoctorsPage() {
         <div>
           <h1 className="page-title">Doctors Directory</h1>
           <p className="page-description">
-            Manage dental specialists, weekly schedules, contact information, and active roster status.
+            Manage dental specialists, weekly schedules, contact records, and practice roster status.
           </p>
         </div>
         <div className="page-actions">
@@ -219,12 +229,12 @@ export function DoctorsPage() {
             }}
           >
             <Plus size={16} />
-            Add Doctor
+            Add New Doctor
           </Button>
         </div>
       </header>
 
-      <Card noBodyPadding>
+      <Card title="Clinic Specialists Roster" icon={UserCheck} noBodyPadding>
         <div className="filter-toolbar">
           <div className="filter-group">
             <div className="search-input-wrap">
@@ -242,7 +252,7 @@ export function DoctorsPage() {
               aria-label="Filter by specialization"
               value={specialization}
               onChange={(e) => setSpecialization(e.target.value)}
-              style={{ width: 'auto', minWidth: 185 }}
+              style={{ width: 'auto', minWidth: 190 }}
             >
               <option value="all">All Specializations</option>
               {SPECIALIZATIONS.map((spec) => (
@@ -256,21 +266,22 @@ export function DoctorsPage() {
               aria-label="Filter by status"
               value={activeFilter}
               onChange={(e) => setActiveFilter(e.target.value)}
-              style={{ width: 'auto', minWidth: 140 }}
+              style={{ width: 'auto', minWidth: 145 }}
             >
               <option value="all">All Statuses</option>
-              <option value="true">Active Only</option>
+              <option value="true">Active Roster Only</option>
               <option value="false">Inactive Only</option>
             </SelectInput>
 
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}>
+                <Filter size={13} />
                 Clear filters
               </Button>
             )}
           </div>
-          <span className="text-muted">
-            {doctors.length} doctor{doctors.length === 1 ? '' : 's'}
+          <span className="text-muted" style={{ fontWeight: 600 }}>
+            {doctors.length} doctor{doctors.length === 1 ? '' : 's'} registered
           </span>
         </div>
 
@@ -287,11 +298,11 @@ export function DoctorsPage() {
         {!loading && !error && doctors.length === 0 && (
           <EmptyState
             icon={Stethoscope}
-            title={hasFilters ? 'No matching doctors' : 'No doctors registered yet'}
+            title={hasFilters ? 'No matching doctors found' : 'No doctors registered yet'}
             description={
               hasFilters
-                ? 'Try adjusting your search query or filters to find a doctor.'
-                : 'Add your first dental specialist to begin scheduling appointments.'
+                ? 'Try adjusting your search terms or filter selections.'
+                : 'Add your first dental specialist to start scheduling patient visits.'
             }
             action={
               hasFilters ? (
@@ -306,7 +317,7 @@ export function DoctorsPage() {
                   }}
                 >
                   <Plus size={15} />
-                  Add Doctor
+                  Add New Doctor
                 </Button>
               )
             }
@@ -401,8 +412,8 @@ export function DoctorsPage() {
         message={
           deleteTarget
             ? deleteTarget.appointment_count > 0
-              ? `Are you sure you want to delete ${deleteTarget.name}? This will also permanently remove ${deleteTarget.appointment_count} associated appointment${deleteTarget.appointment_count === 1 ? '' : 's'}.`
-              : `Are you sure you want to delete ${deleteTarget.name} from the clinic directory? This action cannot be undone.`
+              ? `Are you sure you want to delete ${deleteTarget.name}? This will permanently remove ${deleteTarget.appointment_count} assigned appointment${deleteTarget.appointment_count === 1 ? '' : 's'}.`
+              : `Are you sure you want to delete ${deleteTarget.name} from the practice directory? This action cannot be undone.`
             : ''
         }
       />

@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  Calendar,
+  CalendarClock,
+  Clock,
+  Filter,
+  Pencil,
+  Plus,
+  Search,
+  Stethoscope,
+  Trash2,
+  User,
+} from 'lucide-react';
 import { appointmentsApi, doctorsApi } from '../api/client.js';
 import { AppointmentFormModal } from '../components/appointments/AppointmentFormModal.jsx';
 import { StatusBadge } from '../components/ui/Badge.jsx';
@@ -132,21 +143,27 @@ export function AppointmentsPage() {
   const columns = [
     {
       key: 'patient',
-      header: 'Patient',
+      header: 'Patient Details',
       render: (appt) => (
-        <div>
-          <div style={{ fontWeight: 700 }}>{appt.patient_name}</div>
-          <div className="text-muted">{appt.patient_contact}</div>
+        <div className="row-inline" style={{ gap: 8 }}>
+          <User size={15} style={{ color: 'var(--color-primary-600)', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{appt.patient_name}</div>
+            <div className="text-muted">{appt.patient_contact}</div>
+          </div>
         </div>
       ),
     },
     {
       key: 'doctor',
-      header: 'Doctor',
+      header: 'Attending Specialist',
       render: (appt) => (
-        <div>
-          <div style={{ fontWeight: 600 }}>{appt.doctor_name}</div>
-          <div className="text-muted">{appt.doctor_specialization}</div>
+        <div className="row-inline" style={{ gap: 8 }}>
+          <Stethoscope size={15} style={{ color: 'var(--color-primary-600)', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{appt.doctor_name}</div>
+            <div className="text-muted" style={{ fontSize: '0.78rem' }}>{appt.doctor_specialization}</div>
+          </div>
         </div>
       ),
     },
@@ -154,31 +171,34 @@ export function AppointmentsPage() {
       key: 'datetime',
       header: 'Date & Time',
       render: (appt) => (
-        <div>
-          <div style={{ fontWeight: 500 }}>{formatDisplayDate(appt.appointment_date)}</div>
-          <div className="text-muted">{formatDisplayTime(appt.appointment_time)}</div>
+        <div className="row-inline" style={{ gap: 8 }}>
+          <CalendarClock size={15} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 600 }}>{formatDisplayDate(appt.appointment_date)}</div>
+            <div className="text-muted">{formatDisplayTime(appt.appointment_time)}</div>
+          </div>
         </div>
       ),
     },
     {
       key: 'reason',
-      header: 'Reason',
+      header: 'Reason for Visit',
       render: (appt) => (
-        <div style={{ maxWidth: 260 }}>
-          <div style={{ fontSize: '0.88rem' }}>{appt.reason}</div>
-          {appt.notes && <div className="text-muted">{appt.notes}</div>}
+        <div style={{ maxWidth: 280 }}>
+          <div style={{ fontSize: '0.88rem', fontWeight: 500 }}>{appt.reason}</div>
+          {appt.notes && <div className="text-muted" style={{ fontSize: '0.78rem' }}>{appt.notes}</div>}
         </div>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: 'Status & Quick Action',
       render: (appt) => (
         <div className="row-inline" style={{ gap: 8 }}>
           <StatusBadge status={appt.status} />
           <select
             aria-label={`Change status for ${appt.patient_name}`}
-            className="inline-status-select"
+            className={`inline-status-select status-${appt.status}`}
             value={appt.status}
             disabled={updatingStatusId === appt.id}
             onChange={(e) => handleQuickStatusChange(appt, e.target.value)}
@@ -228,9 +248,9 @@ export function AppointmentsPage() {
     <div>
       <header className="page-header">
         <div>
-          <h1 className="page-title">Appointments</h1>
+          <h1 className="page-title">Appointments Schedule</h1>
           <p className="page-description">
-            Schedule patient visits, track confirmation statuses, and prevent double-booking.
+            Schedule patient visits, track confirmation statuses, and manage 30-minute availability slots.
           </p>
         </div>
         <div className="page-actions">
@@ -238,6 +258,7 @@ export function AppointmentsPage() {
             variant="secondary"
             onClick={() => setDateFilter(getTodayIsoDate())}
           >
+            <Calendar size={15} />
             Today&apos;s Schedule
           </Button>
           <Button
@@ -252,7 +273,7 @@ export function AppointmentsPage() {
         </div>
       </header>
 
-      <Card noBodyPadding>
+      <Card title="Patient Appointments" icon={CalendarClock} noBodyPadding>
         <div className="filter-toolbar">
           <div className="filter-group">
             <div className="search-input-wrap">
@@ -286,7 +307,7 @@ export function AppointmentsPage() {
               onChange={(e) => setDoctorFilter(e.target.value)}
               style={{ width: 'auto', minWidth: 175 }}
             >
-              <option value="all">All Doctors</option>
+              <option value="all">All Specialists</option>
               {doctors.map((doc) => (
                 <option key={doc.id} value={String(doc.id)}>
                   {doc.name}
@@ -304,16 +325,17 @@ export function AppointmentsPage() {
 
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}>
+                <Filter size={13} />
                 Clear filters
               </Button>
             )}
           </div>
-          <span className="text-muted">
+          <span className="text-muted" style={{ fontWeight: 600 }}>
             {appointments.length} appointment{appointments.length === 1 ? '' : 's'}
           </span>
         </div>
 
-        {loading && <LoadingState message="Loading appointments..." />}
+        {loading && <LoadingState message="Loading appointments schedule..." />}
 
         {!loading && error && (
           <ErrorState
@@ -377,7 +399,7 @@ export function AppointmentsPage() {
                 <div className="row-between" style={{ paddingTop: 4, flexWrap: 'wrap' }}>
                   <select
                     aria-label={`Change status for ${appt.patient_name}`}
-                    className="inline-status-select"
+                    className={`inline-status-select status-${appt.status}`}
                     value={appt.status}
                     disabled={updatingStatusId === appt.id}
                     onChange={(e) => handleQuickStatusChange(appt, e.target.value)}

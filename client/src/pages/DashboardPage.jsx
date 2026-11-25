@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  Activity,
   ArrowRight,
   CalendarCheck,
   CalendarClock,
-  Clock,
+  ClipboardList,
+  Clock4,
+  Hospital,
   Plus,
   Stethoscope,
+  UserCheck,
 } from 'lucide-react';
 import { appointmentsApi, doctorsApi } from '../api/client.js';
 import { AppointmentFormModal } from '../components/appointments/AppointmentFormModal.jsx';
@@ -67,10 +71,15 @@ export function DashboardPage() {
     );
     const pendingAppointments = appointments.filter((a) => a.status === 'pending');
 
+    const doctorActivePct = doctors.length ? Math.round((activeDoctors / doctors.length) * 100) : 0;
+    const todayPct = appointments.length ? Math.round((todaysAppointments.length / appointments.length) * 100) : 0;
+
     return {
       totalDoctors: doctors.length,
       activeDoctors,
+      doctorActivePct,
       todaysCount: todaysAppointments.length,
+      todayPct,
       upcomingCount: upcomingAppointments.length,
       pendingCount: pendingAppointments.length,
     };
@@ -91,21 +100,24 @@ export function DashboardPage() {
   const appointmentColumns = [
     {
       key: 'patient_name',
-      header: 'Patient',
+      header: 'Patient Details',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 600 }}>{row.patient_name}</div>
+          <div style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{row.patient_name}</div>
           <div className="text-muted">{row.patient_contact}</div>
         </div>
       ),
     },
     {
       key: 'doctor_name',
-      header: 'Doctor',
+      header: 'Attending Specialist',
       render: (row) => (
-        <div>
-          <div style={{ fontWeight: 500 }}>{row.doctor_name}</div>
-          <div className="text-muted">{row.doctor_specialization}</div>
+        <div className="row-inline" style={{ gap: 6 }}>
+          <Stethoscope size={14} style={{ color: 'var(--color-primary-600)', flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{row.doctor_name}</div>
+            <div className="text-muted" style={{ fontSize: '0.78rem' }}>{row.doctor_specialization}</div>
+          </div>
         </div>
       ),
     },
@@ -114,7 +126,7 @@ export function DashboardPage() {
       header: 'Date & Time',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{formatDisplayDate(row.appointment_date)}</div>
+          <div style={{ fontWeight: 600 }}>{formatDisplayDate(row.appointment_date)}</div>
           <div className="text-muted">{formatDisplayTime(row.appointment_time)}</div>
         </div>
       ),
@@ -128,28 +140,31 @@ export function DashboardPage() {
 
   return (
     <div>
-      <header className="page-header">
+      <section className="hero-banner">
         <div>
-          <h1 className="page-title">Clinic Dashboard</h1>
-          <p className="page-description">
-            Daily overview of dental practitioners, upcoming visits, and pending confirmations.
+          <div className="row-inline" style={{ gap: 8, marginBottom: 6 }}>
+            <Hospital size={20} style={{ color: 'var(--color-primary-700)' }} aria-hidden="true" />
+            <h1 className="hero-banner-title">BrightSmile Practice Console</h1>
+          </div>
+          <p className="hero-banner-sub">
+            Real-time clinical management for dental specialists, patient scheduling, and appointment workflows.
           </p>
         </div>
-        <div className="page-actions">
-          <Link to="/doctors" className="btn btn-secondary">
-            Manage Doctors
-          </Link>
-          <Button onClick={() => setScheduleOpen(true)} disabled={loading || Boolean(error)}>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <Button
+            onClick={() => setScheduleOpen(true)}
+            disabled={loading || Boolean(error)}
+          >
             <Plus size={16} />
-            New Appointment
+            Quick Appointment
           </Button>
         </div>
-      </header>
+      </section>
 
-      {loading && <LoadingState message="Loading clinic dashboard..." />}
+      {loading && <LoadingState message="Loading clinic dashboard overview..." />}
 
       {!loading && error && (
-        <Card>
+        <Card icon={Activity}>
           <ErrorState
             title="Could not load dashboard"
             message={error}
@@ -165,28 +180,30 @@ export function DashboardPage() {
               label="Total Doctors"
               value={metrics.totalDoctors}
               subtext={`${metrics.activeDoctors} active on roster`}
-              icon={Stethoscope}
+              icon={UserCheck}
               tone="teal"
+              progress={metrics.doctorActivePct}
             />
             <StatCard
               label="Today's Appointments"
               value={metrics.todaysCount}
-              subtext={`Scheduled for ${formatDisplayDate(today)}`}
+              subtext="Scheduled for today"
               icon={CalendarCheck}
               tone="blue"
+              progress={metrics.todayPct}
             />
             <StatCard
-              label="Upcoming Appointments"
+              label="Upcoming Visits"
               value={metrics.upcomingCount}
-              subtext="Active visits from today onward"
+              subtext="Active upcoming visits"
               icon={CalendarClock}
               tone="emerald"
             />
             <StatCard
               label="Pending Confirmation"
               value={metrics.pendingCount}
-              subtext="Awaiting staff follow-up"
-              icon={Clock}
+              subtext="Awaiting staff confirmation"
+              icon={Clock4}
               tone="amber"
             />
           </section>
@@ -194,10 +211,11 @@ export function DashboardPage() {
           <div className="dashboard-grid">
             <Card
               title="Upcoming & Recent Appointments"
+              icon={ClipboardList}
               noBodyPadding
               actions={
                 <Link to="/appointments" className="btn btn-ghost btn-sm">
-                  View all <ArrowRight size={14} />
+                  View Schedule <ArrowRight size={14} />
                 </Link>
               }
             >
@@ -240,6 +258,7 @@ export function DashboardPage() {
 
             <Card
               title="Doctors Roster"
+              icon={Stethoscope}
               actions={
                 <Link to="/doctors" className="btn btn-ghost btn-sm">
                   Directory <ArrowRight size={14} />
@@ -253,7 +272,7 @@ export function DashboardPage() {
                   description="Add clinic doctors so staff can assign patient visits."
                 />
               ) : (
-                <div className="stack-md" style={{ gap: 12 }}>
+                <div className="stack-md" style={{ gap: 14 }}>
                   {doctors.slice(0, 5).map((doc) => (
                     <div
                       key={doc.id}
@@ -263,15 +282,16 @@ export function DashboardPage() {
                         borderBottom: '1px solid var(--color-border)',
                       }}
                     >
-                      <div className="row-inline" style={{ minWidth: 0 }}>
+                      <div className="row-inline" style={{ minWidth: 0, gap: 12 }}>
                         <div className="avatar">{getInitials(doc.name)}</div>
                         <div style={{ minWidth: 0 }}>
                           <div
                             style={{
-                              fontWeight: 600,
+                              fontWeight: 700,
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
+                              color: 'var(--color-text-primary)',
                             }}
                           >
                             {doc.name}
