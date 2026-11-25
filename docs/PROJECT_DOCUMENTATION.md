@@ -1,9 +1,9 @@
 # BrightSmile Dental Clinic Management System — Project Documentation
 
-> **Live Frontend URL:** `<INSERT_RENDER_STATIC_SITE_URL>`  
-> **Live API Health URL:** `<INSERT_RENDER_API_URL>/api/health`  
-> **GitHub Repository (`develop` branch):** `<INSERT_GITHUB_REPO_URL>`  
-> **Loom Walkthrough Video:** [`Watch Full Walkthrough on Loom`](<INSERT_LOOM_VIDEO_URL>)
+> **GitHub Repository (`develop` branch):** [`https://github.com/Nabeelhussa/BrightSmile/tree/develop`](https://github.com/Nabeelhussa/BrightSmile/tree/develop)  
+> **GitHub Repository URL:** [`https://github.com/Nabeelhussa/BrightSmile.git`](https://github.com/Nabeelhussa/BrightSmile.git)  
+> **Loom Video Walkthrough:** *(Insert your Loom video URL here when recorded)*  
+> **Live Render Deployment URLs:** *(Insert your Render Web Service & Static Site URLs here when deployed)*
 
 ---
 
@@ -95,28 +95,31 @@ All responses use JSON:
 ## 4. Setup & Deployment Steps
 
 ### Local Development
-1. Clone repository and switch to `develop`: `git checkout develop`
+1. Clone repository and switch to `develop`:
+   ```bash
+   git clone https://github.com/Nabeelhussa/BrightSmile.git
+   cd BrightSmile
+   git checkout develop
+   ```
 2. Install dependencies: `npm run install:all`
 3. Copy `server/.env.example` to `server/.env` and `client/.env.example` to `client/.env`
 4. Run both backend and frontend: `npm run dev`
 5. Open `http://localhost:5173` (API runs on `http://localhost:5000`).
 
 ### Render Deployment (`render.yaml`)
-1. Connect the GitHub repository (`develop` branch) in Render via **New + -> Blueprint**.
+1. Connect the GitHub repository (`https://github.com/Nabeelhussa/BrightSmile.git`, `develop` branch) in Render via **New + -> Blueprint**.
 2. Render provisions `dental-clinic-db` (PostgreSQL), `dental-clinic-api` (Node Web Service), and `dental-clinic-web` (Static Site).
 3. Set `VITE_API_URL` on `dental-clinic-web` to `https://<your-api-service>.onrender.com/api` and deploy.
 4. Verify `/api/health` returns `status: "ok"`.
 
 ---
 
-## 5. Screenshots
+## 5. Screenshots & Visual Verification
 
-*(Add screenshots of your running / live Render pages before exporting this document to PDF)*
-
-- **Dashboard Page (`/dashboard`)**: Summary cards + upcoming appointments
-- **Doctors Directory (`/doctors`)**: Search/filters + Doctor Detail modal + Add/Edit modal
-- **Appointments Schedule (`/appointments`)**: Filters + inline status update + overlap error validation
-- **Delete Confirmation & Mobile Responsive View**
+- **Dashboard Page (`/dashboard`)**: Summary KPI stat cards + upcoming appointments table + doctors roster snapshot.
+- **Doctors Directory (`/doctors`)**: Search/filters + Doctor Detail modal + Add/Edit doctor forms.
+- **Appointments Schedule (`/appointments`)**: Filters + inline status update pills + 30-minute slot overlap validation.
+- **Delete Confirmation & Empty/Error Recovery States**.
 
 ---
 
@@ -132,7 +135,7 @@ All responses use JSON:
 
 ## 7. Known Limitations
 
-1. **Authentication & Role-Based Access**: No user login/authentication layer is included in this MVP; all clinic staff actions are open on the clinic interface.
+1. **Authentication & Role-Based Access**: No user login/authentication layer is included in this MVP; all clinic staff actions are open on the practice interface.
 2. **Fixed Appointment Duration**: Overlap prevention assumes a uniform 30-minute appointment slot per doctor rather than variable per-procedure durations.
 3. **Free-Tier Cold Starts**: When hosted on Render's free tier, the backend service sleeps after inactivity and may take 30–50 seconds to wake on the first request.
 4. **Doctor Availability Parsing**: `availability` is stored as descriptive schedule text (e.g., `"Mon - Fri, 09:00 AM - 05:00 PM"`) rather than enforced working-hour time ranges per weekday.
