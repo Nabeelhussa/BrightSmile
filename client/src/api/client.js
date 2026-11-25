@@ -26,7 +26,7 @@ async function request(endpoint, options = {}) {
     response = await fetch(url, config);
   } catch {
     throw new ApiError(
-      'Unable to reach the clinic server. Please check that the backend is running.',
+      'Unable to reach the clinic server. Please check that the backend server is running.',
       { status: 0, code: 'NETWORK_ERROR' }
     );
   }
@@ -34,19 +34,25 @@ async function request(endpoint, options = {}) {
   let payload = null;
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
-    payload = await response.json();
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
   }
 
   if (!response.ok) {
     const errObj = payload?.error || {};
-    throw new ApiError(
-      errObj.message || `Request failed with status ${response.status}`,
-      {
-        status: response.status,
-        code: errObj.code || 'REQUEST_FAILED',
-        details: errObj.details || null,
-      }
-    );
+    let fallbackMessage = `Request failed with status ${response.status}`;
+    if (!payload || !payload.error) {
+      fallbackMessage =
+        'Backend server is offline or unreachable on port 5000. Please start the backend server with "npm run dev" or "npm --prefix server start".';
+    }
+    throw new ApiError(errObj.message || fallbackMessage, {
+      status: response.status,
+      code: errObj.code || 'REQUEST_FAILED',
+      details: errObj.details || null,
+    });
   }
 
   return payload;
